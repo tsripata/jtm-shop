@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Submit to Google Sheets (Static HTML)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; padding: 24px; background: #f7f7fb; color: #111; }
+    .card { max-width: 520px; margin: 0 auto; background: #fff; padding: 20px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    .row { display: flex; gap: 12px; }
+    label { display: block; font-size: 13px; margin-bottom: 6px; color: #444; }
+    input, textarea { width: 100%; padding: 10px 12px; border: 1px solid #d9d9e3; border-radius: 10px; font-size: 14px; background: #fff; }
+    textarea { min-height: 110px; resize: vertical; }
+    .actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+    button { appearance: none; border: 0; background: #111827; color: #fff; padding: 10px 14px; font-size: 14px; border-radius: 10px; cursor: pointer; }
+    button[disabled] { opacity: .6; cursor: not-allowed; }
+    .note { font-size: 12px; color: #666; margin-top: 10px; }
+    .status { margin-top: 12px; font-size: 14px; }
+    .status.ok { color: #166534; }
+    .status.err { color: #991b1b; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Submit to Google Sheets</h1>
+
+    <!--
+      HOW THIS WORKS
+      - This page posts the form directly to your Apps Script Web App using a hidden iframe.
+      - This avoids CORS problems and works from any static host (GitHub Pages, local file, etc.).
+      - Replace SCRIPT_URL below with your /exec URL.
+    -->
+
+    <!-- 1) Replace this with your Web App /exec URL -->
+    <script>
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2Cu7aCOjvaJqc-p_1kJiE43afE3WZMrse38aaAoLsxTGaiiW-XpAoV2dBWfIhV9Y/exec"; // e.g. https://script.google.com/macros/s/AKfycb.../exec
+    </script>
+
+    <!-- Hidden iframe target (prevents page navigation and avoids CORS) -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none"></iframe>
+
+    <form id="sheetForm" method="POST" target="hidden_iframe">
+      <!-- Honeypot (spam bot trap). If filled, we'll ignore submission. -->
+      <input type="text" name="website" class="sr-only" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div>
+        <label for="name">Name</label>
+        <input id="name" name="name" placeholder="Your name" required>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required>
+        </div>
+        <div style="flex:1">
+          <label for="phone">Phone (optional)</label>
+          <input id="phone" name="phone" placeholder="+66...">
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Say hi..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="submitBtn" type="submit">Submit</button>
+        <div id="spinner" class="note" style="display:none">Submitting…</div>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div class="note">This is a static HTML file. It posts to an Apps Script Web App to write rows into your Google Sheet.</div>
+    </form>
+  </div>
+
+  <script>
+    (function(){
+      const form = document.getElementById('sheetForm');
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      const spinner = document.getElementById('spinner');
+      const iframe = document.getElementById('hidden_iframe');
+
+      // Ensure action points at your script URL
+      form.action = SCRIPT_URL;
+
+      let justSubmitted = false;
+
+      function setLoading(on){
+        btn.disabled = on;
+        spinner.style.display = on ? 'inline' : 'none';
+      }
+
+      form.addEventListener('submit', function(e){
+        // Honeypot: if robots filled it, silently ignore
+        const honey = form.querySelector('input[name="website"]').value.trim();
+        if (honey) { e.preventDefault(); return; }
+
+        setLoading(true);
+        status.textContent = '';
+        status.className = 'status';
+        justSubmitted = true;
+      });
+
+      // When the iframe finishes loading after our submit, we assume success.
+      // (We can't read the iframe content due to cross-origin policy, but the load indicates the script responded.)
+      iframe.addEventListener('load', function(){
+        if (!justSubmitted) return;
+        setLoading(false);
+        justSubmitted = false;
+        form.reset();
+        status.textContent = 'Saved. Thank you!';
+        status.className = 'status ok';
+      });
+    })();
+  </script>
+</body>
+</html>
