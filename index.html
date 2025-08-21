@@ -116,6 +116,7 @@
 
   <script>
     // ---- JSON CONFIG: สินค้าและราคา ----
+    // เพิ่มคุณสมบัติ "disabled: true" เพื่อปิดการใช้งานสินค้ารายนั้น
     const CATALOG = [
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy S", price: 300 },
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy M", price: 300 },
@@ -151,7 +152,7 @@
       { name: "หมวก Bucket ผ้าร่ม", price: 350 },
 
       { name: "สติกเกอร์ติดท้ายรถ แบบ 1", price: 50 },
-      { name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50 },
+      { name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50, disabled: true },
     ];
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1wYhJEGOrJb3WN5QultwtNpAQSk-sPXpWL54CWWSP-zR63FznkfAJ1lWZZUtadq3Y/exec"; // <-- เปลี่ยนเป็น URL จาก Apps Script
@@ -193,6 +194,15 @@
       if (maybeBanner) appendBanner(itemsContainer, maybeBanner);
 
       const item = CATALOG[i];
+      if (item.disabled) {
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = `qty_${i}`;
+        hidden.value = "0";
+        itemsContainer.appendChild(hidden);
+        continue;
+      }
+
       const nameEl = document.createElement("div");
       nameEl.className = "item-name";
       nameEl.textContent = `${item.name} — ${item.price} บาท`;
