@@ -29,6 +29,8 @@
     .qty { width: 80px; }
     .total { font-size: 18px; font-weight: 700; }
     .hint { color: #64748b; font-size: 13px; }
+    .banner { grid-column: 1 / -1; margin: 8px 0; text-align: center; }
+    .banner img { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 12px; object-fit: contain; }
     .error { color: #b91c1c; }
     .success { color: #065f46; }
     button { padding: 12px 18px; border-radius: 10px; border: 0; background:#111827; color: #fff; cursor: pointer; }
@@ -115,11 +117,6 @@
   <script>
     // ---- JSON CONFIG: สินค้าและราคา ----
     const CATALOG = [
-      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' Deep Navy", price: 350 },
-      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' Deep Navy", price: 350 },
-      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
-      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
-
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy S", price: 300 },
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy M", price: 300 },
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy L", price: 300 },
@@ -131,6 +128,11 @@
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White L", price: 300 },
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White XL", price: 300 },
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White 2XL", price: 300 },
+
+      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' Deep Navy", price: 350 },
+      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' Deep Navy", price: 350 },
+      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
+      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
 
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก XS", price: 200 },
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก S", price: 200 },
@@ -154,9 +156,43 @@
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1wYhJEGOrJb3WN5QultwtNpAQSk-sPXpWL54CWWSP-zR63FznkfAJ1lWZZUtadq3Y/exec"; // <-- เปลี่ยนเป็น URL จาก Apps Script
 
-    // Render items
+    // Banner configuration: insert an image BEFORE the item at given index
+    // You can control image size per banner by adding optional width/maxWidth/height/maxHeight
+    // e.g. { index: 10, src: "oversize.jpg", alt: "Oversize", width: "80%", maxHeight: "300px" }
+    const BANNERS = [
+      { index: 0, src: "standard.jpg", alt: "Banner 1" },
+      { index: 10, src: "oversize.jpg", alt: "Banner 2" },
+      { index: 14, src: "kids.jpg", alt: "Banner 2" },
+      { index: 19, src: "bags.jpg", alt: "Banner 2" },
+      { index: 20, src: "crossbody.jpg", alt: "Banner 2" },
+      { index: 23, src: "hats.jpg", alt: "Banner 2" },
+      { index: 26, src: "bucket.jpg", alt: "Banner 2" },
+      { index: 27, src: "stickers.jpg", alt: "Banner 2" },
+    ];
+
+    function appendBanner(container, cfg) {
+      const wrap = document.createElement("div");
+      wrap.className = "banner";
+      const img = document.createElement("img");
+      img.src = cfg.src;
+      img.alt = cfg.alt || "";
+      img.loading = "lazy";
+      if (cfg.width) img.style.width = cfg.width;
+      if (cfg.maxWidth) img.style.maxWidth = cfg.maxWidth;
+      if (cfg.height) img.style.height = cfg.height;
+      if (cfg.maxHeight) img.style.maxHeight = cfg.maxHeight;
+      wrap.appendChild(img);
+      container.appendChild(wrap);
+    }
+
+    // Render items with banners interleaved
     const itemsContainer = document.getElementById("itemsContainer");
-    CATALOG.forEach((item, i) => {
+    const bannersByIndex = new Map(BANNERS.map(b => [b.index, b]));
+    for (let i = 0; i < CATALOG.length; i++) {
+      const maybeBanner = bannersByIndex.get(i);
+      if (maybeBanner) appendBanner(itemsContainer, maybeBanner);
+
+      const item = CATALOG[i];
       const nameEl = document.createElement("div");
       nameEl.className = "item-name";
       nameEl.textContent = `${item.name} — ${item.price} บาท`;
@@ -173,7 +209,7 @@
       qtyEl.addEventListener("change", recalcTotal);
       itemsContainer.appendChild(nameEl);
       itemsContainer.appendChild(qtyEl);
-    });
+    }
 
     function recalcTotal() {
       let total = 0;

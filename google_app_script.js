@@ -12,11 +12,6 @@ const ALLOWED_ORIGIN = "https://tsripata.github.io";
  * หากเปลี่ยนฝั่ง client ต้องอัปเดตที่นี่ให้ตรงกัน
  */
 const ITEM_CATALOG = [
-  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' Deep Navy", price: 350 },
-  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' Deep Navy", price: 350 },
-  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
-  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
-
   { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy S", price: 300 },
   { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy M", price: 300 },
   { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy L", price: 300 },
@@ -28,6 +23,11 @@ const ITEM_CATALOG = [
   { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White L", price: 300 },
   { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White XL", price: 300 },
   { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White 2XL", price: 300 },
+
+  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' Deep Navy", price: 350 },
+  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' Deep Navy", price: 350 },
+  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
+  { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
 
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก XS", price: 200 },
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก S", price: 200 },
