@@ -106,6 +106,39 @@ function ensureHeaders_() {
   }
 }
 
+/**
+ * Fallback parser for multipart/form-data when e.files is undefined (e.g., fetch + FormData)
+ * Returns a map-like object with blobs keyed by field name.
+ */
+function parseMultipartFiles_(e) {
+  try {
+    if (!e || !e.postData || !e.postData.type) return {};
+    if (String(e.postData.type).toLowerCase().indexOf("multipart/form-data") !== 0) return {};
+
+    // Utilities.parseMultipart accepts the raw body string and content type
+    // It returns an array of parts: { name, content, fileName, type, length, blob }
+    var raw = (typeof e.postData.getDataAsString === "function") ? e.postData.getDataAsString() : e.postData.contents;
+    var parts = Utilities.parseMultipart(raw, e.postData.type) || [];
+
+    var out = {};
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (!p || !p.name) continue;
+      if (p.blob) {
+        var fname = p.fileName || p.filename || (p.name + "_upload");
+        try { p.blob.setName(fname); } catch (err) {}
+        out[p.name] = p.blob;
+      } else if (typeof p.content !== "undefined") {
+        out[p.name] = Utilities.newBlob(String(p.content));
+      }
+    }
+    return out;
+  } catch (err) {
+    sheetLog("parseMultipartFiles_ failed:", String(err));
+    return {};
+  }
+}
+
 /** ---- CORS helpers ---- */
 function corsText_(text, status) {
   // Build a text response and attach CORS headers using the older, compatible method
@@ -206,7 +239,7 @@ function doPost(e) {
     ensureHeaders_();
 
     const params = e.parameter || {};
-    const files  = e.files || {};
+    let files  = e.files || {};
 
     const contactName = (params.contactName || "").trim();
     const batch       = (params.batch || "").trim();
@@ -244,6 +277,33 @@ function doPost(e) {
     sheetLog("Files object: " + JSON.stringify(files));
     sheetLog("paymentSlip exists: " + (files && files.paymentSlip ? "YES" : "NO"));
     
+    // Fallback: parse multipart manually if e.files is undefined or missing our field
+    if (!files || !files.paymentSlip) {
+      sheetLog("Attempting multipart fallback parsing...");
+      var parsed = parseMultipartFiles_(e);
+      if (parsed && parsed.paymentSlip) {
+        files = Object.assign({}, files, { paymentSlip: parsed.paymentSlip });
+        sheetLog("Multipart fallback succeeded. Found paymentSlip blob.");
+      } else {
+        sheetLog("Multipart fallback did not find paymentSlip.");
+      }
+    }
+
+    // Final fallback: accept base64 fields from params
+    if ((!files || !files.paymentSlip) && params.paymentSlipBase64) {
+      try {
+        sheetLog("Attempting base64 fallback decoding...");
+        var decoded = Utilities.base64Decode(params.paymentSlipBase64);
+        var mimeType = params.paymentSlipType || "application/octet-stream";
+        var fname = params.paymentSlipName || "payment_slip.jpg";
+        var blobFromB64 = Utilities.newBlob(decoded, mimeType, fname);
+        files = Object.assign({}, files, { paymentSlip: blobFromB64 });
+        sheetLog("Base64 fallback succeeded.");
+      } catch (b64Err) {
+        sheetLog("Base64 decode failed: " + String(b64Err));
+      }
+    }
+
     if (files && files.paymentSlip) {
       sheetLog("Processing file upload...");
       const blob   = files.paymentSlip; // Blob
