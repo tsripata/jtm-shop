@@ -46,7 +46,8 @@
 <body>
   <div class="container">
     <h1>ของที่ระลึก JTM Family Trip</h1>
-    <p class="hint">กรอกข้อมูลด้านล่างและเลือกจำนวนสินค้าที่ต้องการ (สูงสุดรายการละ 10 ชิ้น)</p>
+    <p class="hint">กรอกข้อมูลด้านล่างและเลือกจำนวนสินค้าที่ต้องการ </p>
+    <p><b> สมนาคุณพิเศษ ทุก 1,000บาท รับสติ๊กเกอร์ JTM (แบบสุ่มลาย) 1แผ่น </b></p>
 
     <form id="orderForm" enctype="multipart/form-data">
     <!-- Main Input -->
@@ -76,6 +77,10 @@
       <label for="batchOther">กรณีรุ่นอื่นๆ โปรดระบุรุ่น</label>
       <input id="batchOther" name="batchOther" type="text" placeholder="ระบุชื่อรุ่น (ถ้ามี)" />
       <p class="hint">* หากเลือก "อื่นๆ" โปรดระบุชื่อรุ่นด้านบน</p>
+
+      <label for="phoneNumber">เบอร์โทรศัพท์สำหรับติดต่อ</label>
+      <input id="phoneNumber" name="phoneNumber" type="tel" required placeholder="081-234-5678" pattern="[0-9\-]+" />
+      <p class="hint">* กรุณาระบุเบอร์โทรศัพท์เพื่อการติดต่อกลับ</p>
     </div>
 
     <!-- Shop order (auto from JSON config) -->
@@ -87,7 +92,6 @@
         <div style="flex: 1;">
           <p class="total">ยอดรวม: <span id="total">0</span> บาท</p>
           <p>รับสินค้าสมนาคุณ <strong><span id="freebies">0</span></strong> ชิ้น (ทุกๆ 1,000 บาท)</p>
-          <p class="hint">* กำหนดจำนวนได้ตั้งแต่ 0–10 ชิ้น/รายการ</p>
         </div>
         <div style="flex: 1; min-width: 0;">
           <h4 style="margin: 0 0 8px 0; color: #374151;">สรุปรายการที่เลือก</h4>
@@ -101,9 +105,20 @@
     <!-- Payment slip -->
     <div class="card">
       <h3>อัปโหลดหลักฐานการโอน</h3>
-      <label for="paymentSlip">สลิปโอนเงิน (รูปภาพ)</label>
-      <input id="paymentSlip" name="paymentSlip" type="file" accept="image/*" required />
-      <p class="hint">รองรับไฟล์รูปภาพ เช่น .jpg, .png</p>
+      <div style="display: flex; gap: 24px; align-items: flex-start;">
+        <div style="flex: 1;">
+          <label for="paymentSlip">สลิปโอนเงิน (รูปภาพ)</label>
+          <input id="paymentSlip" name="paymentSlip" type="file" accept="image/*" required />
+          <p class="hint">รองรับไฟล์รูปภาพ เช่น .jpg, .png</p>
+        </div>
+        <div style="flex: 0 0 auto; text-align: center;">
+          <label>QR Code สำหรับโอนเงิน</label>
+          <div style="margin-top: 8px;">
+            <img src="qr.jpg" alt="QR Code" style="max-width: 200px; height: auto; border-radius: 8px; border: 1px solid #e5e7eb;" />
+          </div>
+          <p class="hint" style="margin-top: 8px; font-size: 12px;">สแกน QR Code เพื่อโอนเงิน</p>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -135,11 +150,11 @@
       { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
       { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
 
-      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก XS", price: 200 },
-      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก S", price: 200 },
-      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก M", price: 200 },
-      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก L", price: 200 },
-      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก XL", price: 200 },
+      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 110", price: 200 },
+      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 120", price: 200 },
+      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 130", price: 200 },
+      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 200 },
+      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 150", price: 200 },
 
       { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 },
       { name: "กระเป๋า Cross Body สีฟ้า", price: 250 },
@@ -163,12 +178,12 @@
     const BANNERS = [
   { index: 0, src: "standard.jpg", alt: "Standard", maxWidth: "600px" },
   { index: 10, src: "oversize.jpg", alt: "Oversize", width: "90%", maxHeight: "600px" },
-  { index: 14, src: "kids.jpg", alt: "Kids", width: "80%" },
-  { index: 19, src: "bags.jpg", alt: "Bags", width: "40%", maxWidth: "600px" },
-  { index: 20, src: "crossbody.jpg", alt: "Crossbody", height: "260px" },
+  { index: 14, src: "kids.jpg", alt: "Kids", width: "60%" },
+  { index: 19, src: "bags.jpg", alt: "Bags", width: "50%", maxWidth: "600px" },
+  { index: 20, src: "crossbody.jpg", alt: "Crossbody", width: "50%", maxWidth: "600px" },
   { index: 23, src: "hats.jpg", alt: "Hats", width: "85%" },
   { index: 26, src: "bucket.jpg", alt: "Bucket", width: "85%", maxHeight: "280px" },
-  { index: 27, src: "stickers.jpg", alt: "Stickers", width: "80%" },
+  //{ index: 27, src: "stickers.jpg", alt: "Stickers", width: "80%" },
 ];
 
     function appendBanner(container, cfg) {
@@ -303,6 +318,7 @@
       fd.set("contactName", document.getElementById("contactName").value.trim());
       fd.set("batch", document.getElementById("batch").value);
       fd.set("batchOther", document.getElementById("batchOther").value.trim());
+      fd.set("phoneNumber", document.getElementById("phoneNumber").value.trim());
       fd.set("catalogLength", String(CATALOG.length));
 
       // include current total (server will re-check)

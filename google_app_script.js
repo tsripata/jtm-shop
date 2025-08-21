@@ -29,11 +29,11 @@ const ITEM_CATALOG = [
   { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
   { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
 
-  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก XS", price: 200 },
-  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก S", price: 200 },
-  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก M", price: 200 },
-  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก L", price: 200 },
-  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก XL", price: 200 },
+  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 110", price: 200 },
+  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 120", price: 200 },
+  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 130", price: 200 },
+  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 200 },
+  { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 150", price: 200 },
 
   { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 },
   { name: "กระเป๋า Cross Body สีฟ้า", price: 250 },
@@ -90,9 +90,11 @@ function ensureHeaders_() {
     "ContactName",
     "Batch",
     "BatchOther",
+    "PhoneNumber",
     "TotalBaht",
     "FreeStickers",
     "PaymentSlipURL",
+    "AdditionalImageURL",
   ].concat(ITEM_CATALOG.map(item => item.name)); // 1 column per item
   const existing = sh.getRange(1,1,1,Math.max(headers.length, sh.getLastColumn()||1)).getValues()[0];
 
@@ -175,6 +177,7 @@ function debugDoPost() {
         contactName: "Test User",
         batch: "JTM#25",
         batchOther: "",
+        phoneNumber: "081-234-5678",
         catalogLength: "30",
         clientTotal: "350",
         qty_0: "1",
@@ -244,11 +247,13 @@ function doPost(e) {
     const contactName = (params.contactName || "").trim();
     const batch       = (params.batch || "").trim();
     const batchOther  = (params.batchOther || "").trim();
+    const phoneNumber = (params.phoneNumber || "").trim();
     
     // DEBUG: Log parsed parameters
     sheetLog("Parsed contactName: " + contactName);
     sheetLog("Parsed batch: " + batch);
     sheetLog("Parsed batchOther: " + batchOther);
+    sheetLog("Parsed phoneNumber: " + phoneNumber);
 
     // Parse quantities by index
     const qtys = ITEM_CATALOG.map((_, i) => Number(params[`qty_${i}`] || 0));
@@ -265,8 +270,8 @@ function doPost(e) {
     const freebies  = Math.floor(totalBaht / 1000);
     sheetLog("Total Baht: " + totalBaht + ", Freebies: " + freebies);
 
-    if (!contactName || !batch) {
-      return corsText_("ข้อมูลไม่ครบ (ชื่อผู้ติดต่อ/รุ่น)", 400);
+    if (!contactName || !batch || !phoneNumber) {
+      return corsText_("ข้อมูลไม่ครบ (ชื่อผู้ติดต่อ/รุ่น/เบอร์โทรศัพท์)", 400);
     }
     if (batch === "อื่นๆ" && !batchOther) {
       return corsText_("โปรดระบุรุ่น (เมื่อเลือก 'อื่นๆ')", 400);
@@ -274,8 +279,10 @@ function doPost(e) {
 
     // Handle file upload
     let slipUrl = "";
+    let additionalImageUrl = "";
     sheetLog("Files object: " + JSON.stringify(files));
     sheetLog("paymentSlip exists: " + (files && files.paymentSlip ? "YES" : "NO"));
+    sheetLog("additionalImage exists: " + (files && files.additionalImage ? "YES" : "NO"));
     
     // Fallback: parse multipart manually if e.files is undefined or missing our field
     if (!files || !files.paymentSlip) {
@@ -286,6 +293,11 @@ function doPost(e) {
         sheetLog("Multipart fallback succeeded. Found paymentSlip blob.");
       } else {
         sheetLog("Multipart fallback did not find paymentSlip.");
+      }
+      // Also check for additional image in parsed files
+      if (parsed && parsed.additionalImage) {
+        files = Object.assign({}, files, { additionalImage: parsed.additionalImage });
+        sheetLog("Multipart fallback succeeded. Found additionalImage blob.");
       }
     }
 
@@ -301,6 +313,21 @@ function doPost(e) {
         sheetLog("Base64 fallback succeeded.");
       } catch (b64Err) {
         sheetLog("Base64 decode failed: " + String(b64Err));
+      }
+    }
+
+    // Handle additional image base64 fallback
+    if ((!files || !files.additionalImage) && params.additionalImageBase64) {
+      try {
+        sheetLog("Attempting additional image base64 fallback decoding...");
+        var additionalDecoded = Utilities.base64Decode(params.additionalImageBase64);
+        var additionalMimeType = params.additionalImageType || "application/octet-stream";
+        var additionalFname = params.additionalImageName || "additional_image.jpg";
+        var additionalBlobFromB64 = Utilities.newBlob(additionalDecoded, additionalMimeType, additionalFname);
+        files = Object.assign({}, files, { additionalImage: additionalBlobFromB64 });
+        sheetLog("Additional image base64 fallback succeeded.");
+      } catch (b64Err) {
+        sheetLog("Additional image base64 decode failed: " + String(b64Err));
       }
     }
 
@@ -324,15 +351,31 @@ function doPost(e) {
       return corsText_("ไม่พบไฟล์สลิปโอนเงิน", 400);
     }
 
+    // Handle additional image upload (optional)
+    if (files && files.additionalImage) {
+      sheetLog("Processing additional image upload...");
+      const additionalBlob = files.additionalImage;
+      sheetLog("Additional blob type: " + typeof additionalBlob);
+      
+      const additionalFile = folder.createFile(additionalBlob);
+      sheetLog("Additional file created: " + additionalFile.getName());
+      
+      additionalFile.setDescription(`Additional image for ${contactName} - ${new Date().toISOString()}`);
+      additionalImageUrl = additionalFile.getUrl();
+      sheetLog("Additional file URL: " + additionalImageUrl);
+    }
+
     // Prepare row data
     const row = [
       new Date(),
       contactName,
       batch,
       batchOther,
+      phoneNumber,
       totalBaht,
       freebies,
       slipUrl,
+      additionalImageUrl,
       ...qtys
     ];
     sheetLog("Prepared row data: " + JSON.stringify(row));
