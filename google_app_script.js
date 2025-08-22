@@ -218,9 +218,6 @@ function debugDoPost() {
     // Call doPost with our mock parameters
     const result = doPost(mockE);
     
-    // Log the result for debugging
-    sheetLog("Debug doPost result: " + result.getContent());
-    
     return "Debug completed successfully. Check logs for details.";
     
   } catch (error) {
@@ -231,13 +228,6 @@ function debugDoPost() {
 
 function doPost(e) {
   try {
-    // DEBUG: Log the entire request object
-    sheetLog("!! doPost DEBUG START !!");
-    sheetLog("Request object e: " + JSON.stringify(e));
-    sheetLog("e.parameter: " + JSON.stringify(e.parameter));
-    sheetLog("e.files: " + JSON.stringify(e.files));
-    sheetLog("e.postData: " + JSON.stringify(e.postData));
-    
     ensureHeaders_();
 
     const params = e.parameter || {};
@@ -249,25 +239,21 @@ function doPost(e) {
     const phoneNumber = (params.phoneNumber || "").trim();
     
     // DEBUG: Log parsed parameters
-    sheetLog("Parsed contactName: " + contactName);
-    sheetLog("Parsed batch: " + batch);
-    sheetLog("Parsed batchOther: " + batchOther);
-    sheetLog("Parsed phoneNumber: " + phoneNumber);
-
+    sheetLog("Parsed contactName: " + contactName + " - " + params.contactName + "-" + params.contactName.phoneNumber);
+    sheetLog("Parsed quantities: " + JSON.stringify(qtys));
+    
     // Parse quantities by index
     const qtys = ITEM_CATALOG.map((_, i) => Number(params[`qty_${i}`] || 0));
-    sheetLog("Parsed quantities: " + JSON.stringify(qtys));
     
     // Server-side validation: 0..10
     if (qtys.some(q => isNaN(q) || q < 0 || q > 10)) {
-      sheetLog("Validation failed: Invalid quantities");
+      sheetLog("Validation failed: Invalid quantities for order from " + contactName);
       return corsText_("Invalid quantities", 400);
     }
 
     // Compute total and freebies
     const totalBaht = qtys.reduce((sum, q, i) => sum + q * ITEM_CATALOG[i].price, 0);
     const freebies  = Math.floor(totalBaht / 1000);
-    sheetLog("Total Baht: " + totalBaht + ", Freebies: " + freebies);
 
     if (!contactName || !batch || !phoneNumber) {
       return corsText_("ข้อมูลไม่ครบ (ชื่อผู้ติดต่อ/รุ่น/เบอร์โทรศัพท์)", 400);
@@ -278,60 +264,41 @@ function doPost(e) {
 
     // Handle file upload
     let slipUrl = "";
-    sheetLog("Files object: " + JSON.stringify(files));
-    sheetLog("paymentSlip exists: " + (files && files.paymentSlip ? "YES" : "NO"));
     
     // Fallback: parse multipart manually if e.files is undefined or missing our field
     if (!files || !files.paymentSlip) {
-      sheetLog("Attempting multipart fallback parsing...");
       var parsed = parseMultipartFiles_(e);
       if (parsed && parsed.paymentSlip) {
         files = Object.assign({}, files, { paymentSlip: parsed.paymentSlip });
-        sheetLog("Multipart fallback succeeded. Found paymentSlip blob.");
-      } else {
-        sheetLog("Multipart fallback did not find paymentSlip.");
       }
-
     }
 
     // Final fallback: accept base64 fields from params
     if ((!files || !files.paymentSlip) && params.paymentSlipBase64) {
       try {
-        sheetLog("Attempting base64 fallback decoding...");
         var decoded = Utilities.base64Decode(params.paymentSlipBase64);
         var mimeType = params.paymentSlipType || "application/octet-stream";
         var fname = params.paymentSlipName || "payment_slip.jpg";
         var blobFromB64 = Utilities.newBlob(decoded, mimeType, fname);
         files = Object.assign({}, files, { paymentSlip: blobFromB64 });
-        sheetLog("Base64 fallback succeeded.");
       } catch (b64Err) {
-        sheetLog("Base64 decode failed: " + String(b64Err));
+        sheetLog("Base64 decode failed for order from " + contactName + ": " + String(b64Err));
       }
     }
 
-
-
     if (files && files.paymentSlip) {
-      sheetLog("Processing file upload...");
-      const blob   = files.paymentSlip; // Blob
-      sheetLog("Blob type: " + typeof blob);
-      sheetLog("Blob content: " + blob.toString());
-      
+      const blob   = files.paymentSlip;
       const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-      sheetLog("Got folder: " + folder.getName());
-      
       const file   = folder.createFile(blob);
       sheetLog("File created: " + file.getName());
       
       file.setDescription(`Payment slip for ${contactName} - ${new Date().toISOString()}`);
       slipUrl = file.getUrl();
-      sheetLog("File URL: " + slipUrl);
+      sheetLog("Payment slip uploaded successfully for " + contactName + " - " + file.getName());
     } else {
-      sheetLog("No payment slip file found");
+      sheetLog("No payment slip file found for order from " + contactName);
       return corsText_("ไม่พบไฟล์สลิปโอนเงิน", 400);
     }
-
-
 
     // Prepare row data
     const row = [
@@ -349,17 +316,16 @@ function doPost(e) {
 
     const sh = getSheet_();
     sh.appendRow(row);
-    sheetLog("Row appended to sheet successfully");
+    
+    // Log important order details for tracing
+    sheetLog("ORDER COMPLETED: " + contactName + " - Batch: " + batch + " - Total: " + totalBaht + " THB - Free stickers: " + freebies);
 
     // Response
     const msg = `บันทึกสำเร็จ ยอดรวม ${totalBaht} บาท ได้สติกเกอร์ฟรี ${freebies} แผ่น`;
-    sheetLog("Response message: " + msg);
-    sheetLog("!! doPost DEBUG END !!");
     return corsText_(msg, 200);
 
   } catch (err) {
     sheetLog("ERROR in doPost: " + err.toString());
-    sheetLog("Error stack: " + err.stack);
     return corsText_("Server error: " + err, 500);
   }
 }
