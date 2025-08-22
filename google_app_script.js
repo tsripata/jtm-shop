@@ -238,9 +238,15 @@ function doPost(e) {
     const batchOther  = (params.batchOther || "").trim();
     const phoneNumber = (params.phoneNumber || "").trim();
     
-    // DEBUG: Log parsed parameters
-    sheetLog("Parsed contactName: " + contactName + " - " + params.contactName + "-" + params.contactName.phoneNumber);
+    // Log important parameters (excluding payment slip base64)
+    const logParams = { ...params };
+    delete logParams.paymentSlipBase64; // Remove base64 data from logging
+    delete logParams.paymentSlipType;   // Remove type info
+    delete logParams.paymentSlipName;   // Remove filename info
+    sheetLog("Order parameters: " + JSON.stringify(logParams));
     
+    // DEBUG: Log parsed parameters
+    sheetLog("Parsed contactName: " + contactName + " - " + params.contactName + "-" + params.phoneNumber);
 
     // Parse quantities by index
     const qtys = ITEM_CATALOG.map((_, i) => Number(params[`qty_${i}`] || 0));
