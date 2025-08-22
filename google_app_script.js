@@ -240,11 +240,13 @@ function doPost(e) {
     
     // DEBUG: Log parsed parameters
     sheetLog("Parsed contactName: " + contactName + " - " + params.contactName + "-" + params.contactName.phoneNumber);
-    sheetLog("Parsed quantities: " + JSON.stringify(qtys));
     
+
     // Parse quantities by index
     const qtys = ITEM_CATALOG.map((_, i) => Number(params[`qty_${i}`] || 0));
     
+    sheetLog("Parsed quantities: " + JSON.stringify(qtys));
+
     // Server-side validation: 0..10
     if (qtys.some(q => isNaN(q) || q < 0 || q > 10)) {
       sheetLog("Validation failed: Invalid quantities for order from " + contactName);
