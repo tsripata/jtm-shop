@@ -415,7 +415,16 @@
         for (let j = 8; j < Math.min(headers.length, values.length); j++) {
           const productName = headers[j];
           const quantity = parseInt(values[j]) || 0;
-          if (quantity > 0) {
+          
+          // Filter out non-product columns (totals, summaries, etc.)
+          if (quantity > 0 && 
+              productName && 
+              !productName.toLowerCase().includes('total') &&
+              !productName.toLowerCase().includes('summary') &&
+              !productName.toLowerCase().includes('รวม') &&
+              !productName.toLowerCase().includes('ยอด') &&
+              !productName.toLowerCase().includes('จำนวน') &&
+              productName.trim() !== '') {
             order.items[productName] = quantity;
           }
         }
