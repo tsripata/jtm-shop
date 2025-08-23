@@ -121,6 +121,18 @@
       font-weight: 700;
       color: #059669;
     }
+    .core-team-badge {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
     .order-items {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -181,7 +193,7 @@
 <body>
   <div class="container">
     <h1>🔍 JTM Shop - Order Search (Enhanced)</h1>
-    <p style="color: #6b7280; margin-bottom: 24px;">ค้นหาสั่งซื้อจาก Google Sheets - โหลดข้อมูลจริง</p>
+    <p style="color: #6b7280; margin-bottom: 24px;">ค้นหาสั่งซื้อจาก Google Sheets - Order Data Tab - โหลดข้อมูลจริง</p>
 
     <!-- Search Section -->
     <div class="search-section">
@@ -214,6 +226,12 @@
       </div>
       <div class="search-row">
         <div class="search-group">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="coreTeamFilter" style="width: auto; margin: 0;">
+            แสดงเฉพาะ Core Team (ติดลบ)
+          </label>
+        </div>
+        <div class="search-group">
           <button id="clearBtn" onclick="clearSearch()">🗑️ ล้างการค้นหา</button>
         </div>
       </div>
@@ -231,7 +249,8 @@
   <script>
     // Google Sheets URL - you need to publish this as CSV
     // To publish: File > Share > Publish to web > CSV
-    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY/edit?gid=0#gid=0";
+    // Reading from "Order Data" tab instead of main sheet
+    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY/edit?gid=2144844534#gid=2144844534";
     
     // CORS Proxy (you can use any of these or set up your own)
     const CORS_PROXIES = [
@@ -279,13 +298,19 @@
 
     // Convert Google Sheets URL to CSV export URL
     function getCSVUrl(sheetsUrl) {
-      // Extract the sheet ID from the URL
-      const match = sheetsUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (!match) {
+      // Extract the sheet ID and tab ID from the URL
+      const sheetMatch = sheetsUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      const tabMatch = sheetsUrl.match(/gid=(\d+)/);
+      
+      if (!sheetMatch) {
         throw new Error('Invalid Google Sheets URL');
       }
-      const sheetId = match[1];
-      return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+      
+      const sheetId = sheetMatch[1];
+      const tabId = tabMatch ? tabMatch[1] : '0'; // Default to first tab if no gid specified
+      
+      // Use the specific tab ID for CSV export
+      return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${tabId}`;
     }
 
     // Load data from Google Sheets using CORS proxy
@@ -381,6 +406,8 @@
           totalBaht: parseFloat(values[5]?.replace(/,/g, '')) || 0,
           freeStickers: parseInt(values[6]) || 0,
           paymentSlipURL: values[7] || '',
+          coreTeam: values[values.length - 3] || '', // Core Team column (second to last)
+          coreTeamAmount: parseFloat(values[values.length - 2]?.replace(/,/g, '')) || 0, // Core Team amount column
           items: {}
         };
         
@@ -438,6 +465,8 @@
           totalBaht: 2190,
           freeStickers: 2,
           paymentSlipURL: "https://drive.google.com/file/d/1LNHzkwJ37uJvc3S9xCK_cw7ickMBHmky/view?usp=drivesdk",
+          coreTeam: "Core Team",
+          coreTeamAmount: 2190,
           items: {
             "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy L": 1,
             "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White S": 1,
@@ -457,6 +486,8 @@
           totalBaht: 2860,
           freeStickers: 2,
           paymentSlipURL: "https://drive.google.com/file/d/1CXIN0vLw8Y7XArbmM0UwiUTnRcjJmyai/view?usp=drivesdk",
+          coreTeam: "Core Team",
+          coreTeamAmount: -350,
           items: {
             "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy 2XL": 1,
             "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White": 1,
@@ -478,8 +509,11 @@
           totalBaht: 2120,
           freeStickers: 2,
           paymentSlipURL: "https://drive.google.com/file/d/1gUdrP0SWuEcDcZN9ZDhyNRrKYcutQcVy/view?usp=drivesdk",
+          coreTeam: "",
+          coreTeamAmount: 0,
           items: {
             "กระเป๋า Cross Body สีดำ": 1,
+            "กระเป๋า Cross Body สีฟ้า": 1,
             "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ": 2,
             "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ป 3 สี": 1,
             "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ปสีเทา - เหลือง": 1,
@@ -494,11 +528,13 @@
     function searchOrders() {
       const batchFilter = document.getElementById('batchFilter').value;
       const nameSearch = document.getElementById('nameSearch').value.toLowerCase();
+      const coreTeamOnly = document.getElementById('coreTeamFilter').checked;
       
       filteredOrders = allOrders.filter(order => {
         const matchesBatch = !batchFilter || order.batch === batchFilter;
         const matchesName = !nameSearch || order.contactName.toLowerCase().includes(nameSearch);
-        return matchesBatch && matchesName;
+        const matchesCoreTeam = !coreTeamOnly || order.coreTeamAmount < 0;
+        return matchesBatch && matchesName && matchesCoreTeam;
       });
       
       displayOrders(filteredOrders);
@@ -515,6 +551,7 @@
     function clearSearch() {
       document.getElementById('batchFilter').value = '';
       document.getElementById('nameSearch').value = '';
+      document.getElementById('coreTeamFilter').checked = false;
       filteredOrders = allOrders;
       displayOrders(allOrders);
       document.getElementById('statusMessage').innerHTML = '';
@@ -538,12 +575,16 @@
           <div class="order-card">
             <div class="order-header">
               <div class="order-info">
-                <div class="order-name">${order.contactName}</div>
+                <div class="order-name">
+                  ${order.contactName}
+                  ${order.coreTeamAmount < 0 ? `<span class="core-team-badge">Core Team ${order.coreTeamAmount.toLocaleString()}</span>` : ''}
+                </div>
                 <div class="order-details">
                   รุ่น: ${order.batch}${order.batchOther ? ' (' + order.batchOther + ')' : ''} | 
                   เบอร์: ${order.phoneNumber} | 
                   วันที่: ${order.timestamp} | 
                   สติกเกอร์ฟรี: ${order.freeStickers} ชิ้น
+                  ${order.paymentSlipURL ? ` | <a href="${order.paymentSlipURL}" target="_blank" style="color: #059669; text-decoration: none; font-weight: 600;">📄 ดูสลิป</a>` : ''}
                 </div>
               </div>
               <div class="order-total">${order.totalBaht.toLocaleString()} บาท</div>
@@ -593,6 +634,7 @@
       });
       
       document.getElementById('batchFilter').addEventListener('change', searchOrders);
+      document.getElementById('coreTeamFilter').addEventListener('change', searchOrders);
     });
   </script>
 </body>
