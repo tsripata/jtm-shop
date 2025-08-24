@@ -395,6 +395,48 @@
       console.log('CSV Headers:', headers);
       console.log('Number of columns:', headers.length);
       
+      // Show all available columns for reference
+      console.log('📋 Available columns for mapping:');
+      headers.forEach((header, index) => {
+        console.log(`  ${index}: "${header}"`);
+      });
+      
+      // Also show a more detailed analysis of what each column might contain
+      console.log('🔍 Column Analysis:');
+      headers.forEach((header, index) => {
+        const lowerHeader = header.toLowerCase();
+        let type = 'Unknown';
+        if (lowerHeader.includes('time') || lowerHeader.includes('date') || lowerHeader.includes('วันที่')) type = 'Timestamp';
+        else if (lowerHeader.includes('name') || lowerHeader.includes('ชื่อ') || lowerHeader.includes('contact')) type = 'Contact Name';
+        else if (lowerHeader.includes('phone') || lowerHeader.includes('เบอร์') || lowerHeader.includes('tel')) type = 'Phone Number';
+        else if (lowerHeader.includes('batch') || lowerHeader.includes('รุ่น') || lowerHeader.includes('model')) type = 'Batch';
+        else if (lowerHeader.includes('total') || lowerHeader.includes('ยอด') || lowerHeader.includes('ราคา')) type = 'Total Amount';
+        else if (lowerHeader.includes('sticker')) type = 'Stickers';
+        else if (lowerHeader.includes('core') || lowerHeader.includes('team')) type = 'Core Team';
+        else if (lowerHeader.includes('slip') || lowerHeader.includes('สลิป')) type = 'Payment Slip';
+        else if (lowerHeader.includes('จำนวน') || lowerHeader.includes('quantity')) type = 'Quantity';
+        
+        console.log(`  ${index}: "${header}" → ${type}`);
+      });
+      
+      // Suggest column mappings based on common patterns
+      console.log('💡 Suggested column mappings:');
+      const suggestedMappings = {
+        'timestamp': headers.find(h => h.toLowerCase().includes('time') || h.toLowerCase().includes('date')),
+        'contact name': headers.find(h => h.toLowerCase().includes('name') || h.toLowerCase().includes('contact')),
+        'batch': headers.find(h => h.toLowerCase().includes('batch')),
+        'phone number': headers.find(h => h.toLowerCase().includes('phone') || h.toLowerCase().includes('tel')),
+        'total baht': headers.find(h => h.toLowerCase().includes('total') && h.toLowerCase().includes('baht')),
+        'free stickers': headers.find(h => h.toLowerCase().includes('sticker')),
+        'core team': headers.find(h => h.toLowerCase().includes('core') || h.toLowerCase().includes('team'))
+      };
+      
+      Object.entries(suggestedMappings).forEach(([key, value]) => {
+        if (value) {
+          console.log(`  ${key}: "${value}"`);
+        }
+      });
+      
       // Debug: Show last few headers to identify Core Team columns
       console.log('Last 10 headers:', headers.slice(-10));
       console.log('Headers that might contain Core Team info:');
@@ -428,19 +470,72 @@
           continue;
         }
         
+        // Create a helper function to get values by column name
+        const getValueByColumn = (columnName, defaultValue = '') => {
+          // First try exact match
+          let columnIndex = headers.findIndex(header => 
+            header.toLowerCase().trim() === columnName.toLowerCase().trim()
+          );
+          
+          // If no exact match, try partial match
+          if (columnIndex === -1) {
+            columnIndex = headers.findIndex(header => 
+              header.toLowerCase().includes(columnName.toLowerCase()) ||
+              columnName.toLowerCase().includes(header.toLowerCase())
+            );
+          }
+          
+          if (columnIndex >= 0) {
+            return values[columnIndex];
+          } else {
+            return defaultValue;
+          }
+        };
+
+        const getNumericValueByColumn = (columnName, defaultValue = 0) => {
+          const value = getValueByColumn(columnName, '');
+          if (value === '') return defaultValue;
+          return parseFloat(value.replace(/,/g, '')) || defaultValue;
+        };
+
+        const getIntValueByColumn = (columnName, defaultValue = 0) => {
+          const value = getValueByColumn(columnName, '');
+          if (value === '') return defaultValue;
+          return parseInt(value) || defaultValue;
+        };
+
+        // Try multiple possible column names for each field
         const order = {
-          timestamp: values[0] || '',
-          contactName: values[1] || '',
-          batch: values[2] || '',
-          batchOther: values[3] || '',
-          phoneNumber: values[4] || '',
-          totalBaht: parseFloat(values[5]?.replace(/,/g, '')) || 0,
-          freeStickers: parseInt(values[6]) || 0,
-          paymentSlipURL: values[7] || '',
-          coreTeam: values[values.length - 3] || '', // Core Team column (second to last)
-          coreTeamAmount: parseFloat(values[values.length - 3]?.replace(/,/g, '')) || 0, // Core Team amount column
+          timestamp: getValueByColumn('Timestamp') || getValueByColumn('Date') || getValueByColumn('วันที่') || getValueByColumn('Time'),
+          contactName: getValueByColumn('Contact Name') || getValueByColumn('Name') || getValueByColumn('ชื่อ') || getValueByColumn('Contact'),
+          batch: getValueByColumn('Batch') || getValueByColumn('รุ่น') || getValueByColumn('Model'),
+          batchOther: getValueByColumn('Batch Other') || getValueByColumn('รุ่นอื่น') || getValueByColumn('Other'),
+          phoneNumber: getValueByColumn('Phone Number') || getValueByColumn('PhoneNumber') ,
+          totalBaht: getNumericValueByColumn('Total Baht') || getNumericValueByColumn('TotalBaht') ,
+          freeStickers: getIntValueByColumn('Free Stickers'),
+          paymentSlipURL: getValueByColumn('Payment Slip URL') ,
+          coreTeam: getValueByColumn('Core Team') ,
+          coreTeamAmount: getNumericValueByColumn('Core Team') ,
           items: {}
         };
+
+        // Debug column mapping for first few orders
+        if (i <= 3) {
+          console.log(`🔍 Order ${i} Column Mapping Debug:`);
+          console.log(`  Timestamp: "${order.timestamp}"`);
+          console.log(`  Contact Name: "${order.contactName}"`);
+          console.log(`  Batch: "${order.batch}"`);
+          console.log(`  Phone Number: "${order.phoneNumber}"`);
+          console.log(`  Total Baht: ${order.totalBaht}`);
+          console.log(`  Core Team: "${order.coreTeam}"`);
+          console.log(`  Core Team Amount: ${order.coreTeamAmount}`);
+          
+          // Show which columns were actually found
+          console.log(`  📍 Column Search Results:`);
+          console.log(`    Timestamp found: ${getValueByColumn('Timestamp') || getValueByColumn('Date') || getValueByColumn('วันที่') || getValueByColumn('Time')}`);
+          console.log(`    Name found: ${getValueByColumn('Contact Name') || getValueByColumn('Name') || getValueByColumn('ชื่อ') || getValueByColumn('Contact')}`);
+          console.log(`    Phone found: ${getValueByColumn('Phone Number') || getValueByColumn('Phone') || getValueByColumn('เบอร์') || getValueByColumn('Tel')}`);
+        }
         
         // Debug Core Team values for first few orders
         if (i <= 5) {
@@ -470,21 +565,27 @@
           console.log(`  Type of coreTeamAmount: ${typeof order.coreTeamAmount}`);
         }
         
-        // Parse product quantities (columns 8 onwards)
+        // Parse product quantities (skip known non-product columns)
         let itemCount = 0;
-        for (let j = 8; j < Math.min(headers.length, values.length); j++) {
+        const knownNonProductColumns = [
+          'timestamp', 'contact name', 'batch', 'batch other', 'phone number', 
+          'total baht', 'free stickers', 'payment slip url', 'core team', 'core team amount',
+          'total', 'summary', 'รวม', 'ยอด', 'จำนวน'
+        ];
+        
+        for (let j = 0; j < Math.min(headers.length, values.length); j++) {
           const productName = headers[j];
           const quantity = parseInt(values[j]) || 0;
           
-          // Filter out non-product columns (totals, summaries, etc.)
-          if (quantity > 0 && 
-              productName && 
-              !productName.toLowerCase().includes('total') &&
-              !productName.toLowerCase().includes('summary') &&
-              !productName.toLowerCase().includes('รวม') &&
-              !productName.toLowerCase().includes('ยอด') &&
-              !productName.toLowerCase().includes('จำนวน') &&
-              productName.trim() !== '') {
+          // Skip if it's a known non-product column or empty
+          if (knownNonProductColumns.some(col => 
+              productName.toLowerCase().includes(col.toLowerCase())
+          )) {
+            continue;
+          }
+          
+          // Only add if it's a valid product with quantity > 0
+          if (quantity > 0 && productName && productName.trim() !== '') {
             order.items[productName] = quantity;
             itemCount++;
           }
@@ -495,14 +596,20 @@
           orders.push(order);
           successfulRows++;
           if (successfulRows <= 5) { // Log first 5 successful orders
-            console.log(`✅ Order ${i}: ${order.contactName} with ${itemCount} items`);
+            console.log(`✅ Order ${i}: ${order.contactName || 'NO NAME'} with ${itemCount} items`);
           }
         } else {
           noItemsRows++;
           if (noItemsRows <= 5) { // Log first 5 orders without items
-            console.log(`❌ Order ${i}: ${order.contactName} - NO ITEMS FOUND`);
+            console.log(`❌ Order ${i}: ${order.contactName || 'NO NAME'} - NO ITEMS FOUND`);
             console.log('  Raw values:', values.slice(8, Math.min(headers.length, values.length)));
           }
+        }
+        
+        // If contact name is missing, show raw values for debugging
+        if (!order.contactName && i <= 5) {
+          console.log(`⚠️  Order ${i} has NO CONTACT NAME. Raw values:`, values);
+          console.log(`    Headers:`, headers);
         }
       }
       
@@ -705,12 +812,12 @@
             <div class="order-header">
               <div class="order-info">
                 <div class="order-name">
-                  ${order.contactName}
+                  ${order.contactName || 'ไม่ระบุชื่อ (No Name)'}
                   ${order.coreTeamAmount < 0 ? `<span class="core-team-badge">Core Team ${order.coreTeamAmount.toLocaleString()}</span>` : ''}
                 </div>
                 <div class="order-details">
                   รุ่น: ${order.batch}${order.batchOther ? ' (' + order.batchOther + ')' : ''} | 
-                  เบอร์: ${order.phoneNumber} | 
+                  เบอร์: ${order.phoneNumber || 'ไม่ระบุ'} | 
                   วันที่: ${order.timestamp} | 
                   สติกเกอร์ฟรี: ${order.freeStickers} ชิ้น
                   ${order.paymentSlipURL ? ` | <a href="${order.paymentSlipURL}" target="_blank" style="color: #059669; text-decoration: none; font-weight: 600;">📄 ดูสลิป</a>` : ''}
