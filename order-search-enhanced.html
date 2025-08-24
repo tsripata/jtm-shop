@@ -551,9 +551,9 @@
           contactName: getValueByColumn('Contact Name') || getValueByColumn('Name') || getValueByColumn('ชื่อ') || getValueByColumn('Contact'),
           batch: getValueByColumn('Batch') || getValueByColumn('รุ่น') || getValueByColumn('Model'),
           batchOther: getValueByColumn('Batch Other') || getValueByColumn('รุ่นอื่น') || getValueByColumn('Other'),
-          phoneNumber: getValueByColumn('Phone Number') || getValueByColumn('PhoneNumber') ,
+          phoneNumber: getValueByColumn('Phone Number') || getValueByColumn('PhoneNumber') || getValueByColumn('เบอร์') || getValueByColumn('Phone') || getValueByColumn('Tel') || '',
           totalBaht: getNumericValueByColumn('Total Baht') || getNumericValueByColumn('TotalBaht') ,
-          freeStickers: getIntValueByColumn('Free Stickers'),
+          freeStickers: getIntValueByColumn('Free Stickers') || getIntValueByColumn('FreeStickers') || getIntValueByColumn('สติกเกอร์ฟรี') || 0,
           paymentSlipURL: getValueByColumn('Payment Slip URL') ,
           coreTeam: getValueByColumn('Core Team') ,
           coreTeamAmount: getNumericValueByColumn('Core Team') ,
@@ -568,6 +568,7 @@
           console.log(`  Batch: "${order.batch}"`);
           console.log(`  Phone Number: "${order.phoneNumber}"`);
           console.log(`  Total Baht: ${order.totalBaht}`);
+          console.log(`  Free Stickers: ${order.freeStickers}`);
           console.log(`  Core Team: "${order.coreTeam}"`);
           console.log(`  Core Team Amount: ${order.coreTeamAmount}`);
           
@@ -576,6 +577,7 @@
           console.log(`    Timestamp found: ${getValueByColumn('Timestamp') || getValueByColumn('Date') || getValueByColumn('วันที่') || getValueByColumn('Time')}`);
           console.log(`    Name found: ${getValueByColumn('Contact Name') || getValueByColumn('Name') || getValueByColumn('ชื่อ') || getValueByColumn('Contact')}`);
           console.log(`    Phone found: ${getValueByColumn('Phone Number') || getValueByColumn('Phone') || getValueByColumn('เบอร์') || getValueByColumn('Tel')}`);
+          console.log(`    Free Stickers found: ${getValueByColumn('Free Stickers') || getValueByColumn('FreeStickers') || getValueByColumn('สติกเกอร์ฟรี') || 'NOT FOUND'}`);
         }
         
         // Debug Core Team values for first few orders
@@ -609,26 +611,99 @@
         // Parse product quantities (skip known non-product columns)
         let itemCount = 0;
         const knownNonProductColumns = [
-          'timestamp', 'contact name', 'batch', 'batch other', 'phone number', 
-          'total baht', 'free stickers', 'payment slip url', 'core team', 'core team amount',
-          'total', 'summary', 'รวม', 'ยอด', 'จำนวน'
+          'timestamp', 'contact name', 'batch', 'batch other', 'phone number', 'phonenumber',
+          'total baht', 'totalbaht', 'free stickers', 'freestickers', 'payment slip url', 'payment slip url',
+          'core team', 'core team amount', 'total', 'summary', 'รวม', 'ยอด', 'จำนวน',
+          'phone', 'เบอร์', 'tel', 'telephone', 'sticker', 'สติกเกอร์'
         ];
+        
+        // Debug: Log which columns are being processed for items
+        if (i <= 3) { // Only log for first few orders to avoid spam
+          console.log(`🔍 Order ${i} - Processing columns for items:`);
+        }
         
         for (let j = 0; j < Math.min(headers.length, values.length); j++) {
           const productName = headers[j];
           const quantity = parseInt(values[j]) || 0;
           
+          // Debug logging for first few orders
+          if (i <= 3) {
+            console.log(`  Column ${j}: "${productName}" = ${quantity} (${typeof quantity})`);
+          }
+          
           // Skip if it's a known non-product column or empty
           if (knownNonProductColumns.some(col => 
               productName.toLowerCase().includes(col.toLowerCase())
           )) {
+            if (i <= 3) console.log(`    → Skipped (known non-product column)`);
+            continue;
+          }
+          
+          // Additional checks for common non-product patterns
+          const lowerProductName = productName.toLowerCase();
+          if (lowerProductName.includes('phone') || 
+              lowerProductName.includes('เบอร์') || 
+              lowerProductName.includes('tel') ||
+              lowerProductName.includes('sticker') ||
+              lowerProductName.includes('สติกเกอร์') ||
+              lowerProductName.includes('free') ||
+              lowerProductName.includes('ฟรี') ||
+              lowerProductName.includes('timestamp') ||
+              lowerProductName.includes('date') ||
+              lowerProductName.includes('วันที่') ||
+              lowerProductName.includes('time') ||
+              lowerProductName.includes('เวลา') ||
+              lowerProductName.includes('total') ||
+              lowerProductName.includes('ยอด') ||
+              lowerProductName.includes('รวม') ||
+              lowerProductName.includes('amount') ||
+              lowerProductName.includes('จำนวน') ||
+              lowerProductName.includes('quantity') ||
+              lowerProductName.includes('batch') ||
+              lowerProductName.includes('รุ่น') ||
+              lowerProductName.includes('model') ||
+              lowerProductName.includes('name') ||
+              lowerProductName.includes('ชื่อ') ||
+              lowerProductName.includes('contact') ||
+              lowerProductName.includes('payment') ||
+              lowerProductName.includes('สลิป') ||
+              lowerProductName.includes('url') ||
+              lowerProductName.includes('core') ||
+              lowerProductName.includes('team') ||
+              // Additional specific exclusions
+              lowerProductName === 'phonenumber' ||
+              lowerProductName === 'freestickers' ||
+              lowerProductName === 'สติกเกอร์ฟรี' ||
+              lowerProductName === 'เบอร์โทร' ||
+              lowerProductName === 'telephone' ||
+              lowerProductName === 'mobile' ||
+              lowerProductName === 'มือถือ') {
+            if (i <= 3) console.log(`    → Skipped (pattern match)`);
             continue;
           }
           
           // Only add if it's a valid product with quantity > 0
           if (quantity > 0 && productName && productName.trim() !== '') {
+            // Additional validation: skip if the product name looks like a phone number or other non-product identifier
+            const cleanProductName = productName.replace(/[^a-zA-Z0-9ก-๙]/g, '').toLowerCase();
+            
+            // Skip if it looks like a phone number (9-10 digits)
+            if (/^\d{9,10}$/.test(cleanProductName)) {
+              if (i <= 3) console.log(`    → Skipped (looks like phone number: ${cleanProductName})`);
+              continue;
+            }
+            
+            // Skip if it's just a number or very short text
+            if (cleanProductName.length < 3 || /^\d+$/.test(cleanProductName)) {
+              if (i <= 3) console.log(`    → Skipped (too short or just numbers: ${cleanProductName})`);
+              continue;
+            }
+            
             order.items[productName] = quantity;
             itemCount++;
+            if (i <= 3) console.log(`    → Added as item: "${productName}" = ${quantity}`);
+          } else {
+            if (i <= 3) console.log(`    → Skipped (no quantity or empty)`);
           }
         }
         
@@ -665,8 +740,25 @@
       console.log('Total orders found:', orders.length);
       console.log('Data loss analysis:', `${totalDataRows} CSV rows → ${orders.length} orders (${totalDataRows - orders.length} rows lost)`);
       
+      // Show which columns were identified as items vs non-items
       if (orders.length > 0) {
         console.log('Sample successful orders:', orders.slice(0, 3));
+        
+        // Analyze what columns are being treated as items
+        const allItemNames = new Set();
+        orders.forEach(order => {
+          Object.keys(order.items).forEach(itemName => allItemNames.add(itemName));
+        });
+        
+        console.log('📦 Items found in orders:', Array.from(allItemNames).sort());
+        
+        // Show which headers were NOT treated as items (for verification)
+        const nonItemHeaders = headers.filter(header => 
+          !Array.from(allItemNames).some(itemName => 
+            itemName.toLowerCase() === header.toLowerCase()
+          )
+        );
+        console.log('🚫 Headers NOT treated as items:', nonItemHeaders);
       }
       
       console.log('=== CSV PARSING DEBUG END ===');
@@ -871,8 +963,8 @@
                 <div class="order-details">
                   รุ่น: ${order.batch}${order.batchOther ? ' (' + order.batchOther + ')' : ''} | 
                   เบอร์: ${order.phoneNumber || 'ไม่ระบุ'} | 
-                  วันที่: ${order.timestamp} | 
-                  สติกเกอร์ฟรี: ${order.freeStickers} ชิ้น
+                  วันที่: ${order.timestamp}
+                  ${(order.freeStickers && order.freeStickers > 0) ? ` | สติกเกอร์ฟรี: ${order.freeStickers} ชิ้น` : ''}
                   ${order.paymentSlipURL ? ` | <a href="${order.paymentSlipURL}" target="_blank" style="color: #059669; text-decoration: none; font-weight: 600;">📄 ดูสลิป</a>` : ''}
                 </div>
               </div>
