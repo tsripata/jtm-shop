@@ -240,8 +240,6 @@
     <!-- Status Messages -->
     <div id="statusMessage"></div>
 
-
-
     <!-- Results Section -->
     <div id="resultsSection"></div>
   </div>
@@ -250,7 +248,7 @@
     // Google Sheets URL - you need to publish this as CSV
     // To publish: File > Share > Publish to web > CSV
     // Reading from "Order Data" tab instead of main sheet
-    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY/edit?gid=2144844534#gid=2144844534";
+    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY/edit?gid=1646323390#gid=1646323390";
     
     // CORS Proxy (you can use any of these or set up your own)
     const CORS_PROXIES = [
@@ -357,6 +355,9 @@
         const orders = parseCSVData(csvData);
         allOrders = orders;
         
+        // Get the total data rows count for summary
+        const totalDataRows = csvData.split('\n').length - 1; // Exclude header row
+        
         statusDiv.innerHTML = '<div class="success">โหลดข้อมูลสำเร็จ! พบคำสั่งซื้อ ' + allOrders.length + ' รายการ</div>';
         
         // Show all orders initially
@@ -378,7 +379,13 @@
 
     // Parse CSV data from Google Sheets
     function parseCSVData(csvText) {
+      console.log('=== CSV PARSING DEBUG START ===');
+      console.log('Raw CSV data length:', csvText.length);
+      console.log('Raw CSV preview (first 1000 chars):', csvText.substring(0, 1000));
+      
       const lines = csvText.split('\n');
+      console.log('Total CSV lines:', lines.length);
+      
       if (lines.length < 2) {
         throw new Error('ข้อมูล CSV ไม่ถูกต้อง');
       }
@@ -386,16 +393,40 @@
       // Parse headers (first row)
       const headers = parseCSVRow(lines[0]);
       console.log('CSV Headers:', headers);
+      console.log('Number of columns:', headers.length);
+      
+      // Debug: Show last few headers to identify Core Team columns
+      console.log('Last 10 headers:', headers.slice(-10));
+      console.log('Headers that might contain Core Team info:');
+      headers.forEach((header, index) => {
+        if (header.toLowerCase().includes('core') || header.toLowerCase().includes('team') || header.toLowerCase().includes('ติดลบ')) {
+          console.log(`  Header ${index}: "${header}"`);
+        }
+      });
       
       const orders = [];
+      let skippedRows = 0;
+      let emptyRows = 0;
+      let insufficientColumns = 0;
+      let noItemsRows = 0;
+      let successfulRows = 0;
+      let totalDataRows = lines.length - 1; // Exclude header row
       
       // Parse data rows (skip header)
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (!line) continue;
+        if (!line) {
+          emptyRows++;
+          continue;
+        }
         
         const values = parseCSVRow(line);
-        if (values.length < headers.length) continue;
+        
+        if (values.length < headers.length) {
+          console.log(`Row ${i}: Insufficient columns (${values.length} < ${headers.length}) - Values:`, values);
+          insufficientColumns++;
+          continue;
+        }
         
         const order = {
           timestamp: values[0] || '',
@@ -407,11 +438,40 @@
           freeStickers: parseInt(values[6]) || 0,
           paymentSlipURL: values[7] || '',
           coreTeam: values[values.length - 3] || '', // Core Team column (second to last)
-          coreTeamAmount: parseFloat(values[values.length - 2]?.replace(/,/g, '')) || 0, // Core Team amount column
+          coreTeamAmount: parseFloat(values[values.length - 3]?.replace(/,/g, '')) || 0, // Core Team amount column
           items: {}
         };
         
+        // Debug Core Team values for first few orders
+        if (i <= 5) {
+          console.log(`🔍 Order ${i} Core Team Debug:`);
+          console.log(`  Raw coreTeam value: "${values[values.length - 3]}"`);
+          console.log(`  Raw coreTeamAmount value: "${values[values.length - 2]}"`);
+          console.log(`  Parsed coreTeam: "${order.coreTeam}"`);
+          console.log(`  Parsed coreTeamAmount: ${order.coreTeamAmount}`);
+          console.log(`  Is Core Team (negative): ${order.coreTeamAmount < 0}`);
+        }
+        
+        // Special debug for specific order
+        if (order.contactName === "เอสตั้น บ้านคิดดี") {
+          console.log(`🎯 SPECIAL DEBUG for เอสตั้น บ้านคิดดี:`);
+          console.log(`  Row index: ${i}`);
+          console.log(`  Total columns in row: ${values.length}`);
+          console.log(`  Total columns in headers: ${headers.length}`);
+          console.log(`  All raw values:`, values);
+          console.log(`  Last 5 values:`, values.slice(-5));
+          console.log(`  Core Team column index (values.length - 3): ${values.length - 3}`);
+          console.log(`  Core Team Amount column index (values.length - 2): ${values.length - 2}`);
+          console.log(`  Raw coreTeam value: "${values[values.length - 3]}"`);
+          console.log(`  Raw coreTeamAmount value: "${values[values.length - 2]}"`);
+          console.log(`  Parsed coreTeam: "${order.coreTeam}"`);
+          console.log(`  Parsed coreTeamAmount: ${order.coreTeamAmount}`);
+          console.log(`  Is Core Team (negative): ${order.coreTeamAmount < 0}`);
+          console.log(`  Type of coreTeamAmount: ${typeof order.coreTeamAmount}`);
+        }
+        
         // Parse product quantities (columns 8 onwards)
+        let itemCount = 0;
         for (let j = 8; j < Math.min(headers.length, values.length); j++) {
           const productName = headers[j];
           const quantity = parseInt(values[j]) || 0;
@@ -426,16 +486,43 @@
               !productName.toLowerCase().includes('จำนวน') &&
               productName.trim() !== '') {
             order.items[productName] = quantity;
+            itemCount++;
           }
         }
         
         // Only add orders that have items
         if (Object.keys(order.items).length > 0) {
           orders.push(order);
+          successfulRows++;
+          if (successfulRows <= 5) { // Log first 5 successful orders
+            console.log(`✅ Order ${i}: ${order.contactName} with ${itemCount} items`);
+          }
+        } else {
+          noItemsRows++;
+          if (noItemsRows <= 5) { // Log first 5 orders without items
+            console.log(`❌ Order ${i}: ${order.contactName} - NO ITEMS FOUND`);
+            console.log('  Raw values:', values.slice(8, Math.min(headers.length, values.length)));
+          }
         }
       }
       
-      console.log('Parsed orders:', orders);
+      console.log('=== CSV PARSING SUMMARY ===');
+      console.log('Total CSV lines:', lines.length);
+      console.log('Header row:', 1);
+      console.log('Total data rows in CSV:', totalDataRows);
+      console.log('Empty rows skipped:', emptyRows);
+      console.log('Rows with insufficient columns:', insufficientColumns);
+      console.log('Orders with items (SUCCESS):', successfulRows);
+      console.log('Orders without items (SKIPPED):', noItemsRows);
+      console.log('Total orders found:', orders.length);
+      console.log('Data loss analysis:', `${totalDataRows} CSV rows → ${orders.length} orders (${totalDataRows - orders.length} rows lost)`);
+      
+      if (orders.length > 0) {
+        console.log('Sample successful orders:', orders.slice(0, 3));
+      }
+      
+      console.log('=== CSV PARSING DEBUG END ===');
+      
       return orders;
     }
 
@@ -459,6 +546,14 @@
       }
       
       result.push(current.trim());
+      
+      // Debug logging for problematic rows
+      if (result.length < 5) {
+        console.log('⚠️ Warning: Row has very few columns:', result.length);
+        console.log('  Original line:', line);
+        console.log('  Parsed values:', result);
+      }
+      
       return result;
     }
 
@@ -539,12 +634,37 @@
       const nameSearch = document.getElementById('nameSearch').value.toLowerCase();
       const coreTeamOnly = document.getElementById('coreTeamFilter').checked;
       
-      filteredOrders = allOrders.filter(order => {
+      console.log('🔍 Search Debug:');
+      console.log('  Batch filter:', batchFilter);
+      console.log('  Name search:', nameSearch);
+      console.log('  Core Team only:', coreTeamOnly);
+      console.log('  Total orders to filter:', allOrders.length);
+      
+      // Debug Core Team orders before filtering
+      if (coreTeamOnly) {
+        const coreTeamOrders = allOrders.filter(order => order.coreTeamAmount < 0);
+        console.log('  Core Team orders found (coreTeamAmount < 0):', coreTeamOrders.length);
+        console.log('  Sample Core Team orders:', coreTeamOrders.slice(0, 3).map(o => ({
+          name: o.contactName,
+          coreTeamAmount: o.coreTeamAmount,
+          batch: o.batch
+        })));
+      }
+      
+      filteredOrders = allOrders.filter((order, index) => {
         const matchesBatch = !batchFilter || order.batch === batchFilter;
         const matchesName = !nameSearch || order.contactName.toLowerCase().includes(nameSearch);
         const matchesCoreTeam = !coreTeamOnly || order.coreTeamAmount < 0;
+        
+        // Debug individual order filtering
+        if (coreTeamOnly && index < 5) {
+          console.log(`  Order ${order.contactName}: coreTeamAmount=${order.coreTeamAmount}, matchesCoreTeam=${matchesCoreTeam}`);
+        }
+        
         return matchesBatch && matchesName && matchesCoreTeam;
       });
+      
+      console.log('  Final filtered orders:', filteredOrders.length);
       
       displayOrders(filteredOrders);
       
