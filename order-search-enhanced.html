@@ -49,6 +49,12 @@
       border: 1px solid #cbd5e1; 
       border-radius: 8px; 
       font-size: 14px;
+      transition: all 0.2s;
+    }
+    input[type="text"]:disabled, select:disabled { 
+      background-color: #f3f4f6; 
+      color: #9ca3af; 
+      cursor: not-allowed;
     }
     button { 
       padding: 12px 24px; 
@@ -66,6 +72,7 @@
     button:disabled { 
       opacity: 0.6; 
       cursor: not-allowed; 
+      background: #9ca3af;
     }
     .loading {
       text-align: center;
@@ -200,7 +207,7 @@
       <div class="search-row">
         <div class="search-group">
           <label for="batchFilter">รุ่น (Batch)</label>
-          <select id="batchFilter">
+          <select id="batchFilter" disabled>
             <option value="">ทุกรุ่น</option>
             <option value="JTM#18">JTM#18</option>
             <option value="JTM#19">JTM#19</option>
@@ -218,22 +225,25 @@
         </div>
         <div class="search-group">
           <label for="nameSearch">ค้นหาชื่อ</label>
-          <input id="nameSearch" type="text" placeholder="พิมพ์ชื่อเพื่อค้นหา..." />
+          <input id="nameSearch" type="text" placeholder="กำลังโหลดข้อมูล..." disabled />
         </div>
         <div class="search-group">
-          <button id="searchBtn" onclick="searchOrders()">🔍 ค้นหา</button>
+          <button id="searchBtn" onclick="searchOrders()" disabled>🔍 ค้นหา</button>
         </div>
       </div>
       <div class="search-row">
         <div class="search-group">
           <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" id="coreTeamFilter" style="width: auto; margin: 0;">
+            <input type="checkbox" id="coreTeamFilter" style="width: auto; margin: 0;" disabled>
             แสดงเฉพาะ Core Team (ติดลบ)
           </label>
         </div>
         <div class="search-group">
-          <button id="clearBtn" onclick="clearSearch()">🗑️ ล้างการค้นหา</button>
+          <button id="clearBtn" onclick="clearSearch()" disabled>🗑️ ล้างการค้นหา</button>
         </div>
+      </div>
+      <div id="searchStatus" style="text-align: center; color: #6b7280; font-style: italic; margin-top: 16px;">
+        กำลังโหลดข้อมูลจาก Google Sheets... กรุณารอสักครู่
       </div>
     </div>
 
@@ -294,6 +304,28 @@
     let allOrders = [];
     let filteredOrders = [];
 
+    // Enable search controls after data is loaded
+    function enableSearchControls() {
+      document.getElementById('batchFilter').disabled = false;
+      document.getElementById('nameSearch').disabled = false;
+      document.getElementById('nameSearch').placeholder = 'พิมพ์ชื่อเพื่อค้นหา...';
+      document.getElementById('searchBtn').disabled = false;
+      document.getElementById('coreTeamFilter').disabled = false;
+      document.getElementById('clearBtn').disabled = false;
+      document.getElementById('searchStatus').innerHTML = '✅ ข้อมูลพร้อมใช้งาน - สามารถค้นหาและกรองได้';
+    }
+
+    // Disable search controls during loading
+    function disableSearchControls() {
+      document.getElementById('batchFilter').disabled = true;
+      document.getElementById('nameSearch').disabled = true;
+      document.getElementById('nameSearch').placeholder = 'กำลังโหลดข้อมูล...';
+      document.getElementById('searchBtn').disabled = true;
+      document.getElementById('coreTeamFilter').disabled = true;
+      document.getElementById('clearBtn').disabled = true;
+      document.getElementById('searchStatus').innerHTML = 'กำลังโหลดข้อมูลจาก Google Sheets... กรุณารอสักครู่';
+    }
+
     // Convert Google Sheets URL to CSV export URL
     function getCSVUrl(sheetsUrl) {
       // Extract the sheet ID and tab ID from the URL
@@ -315,6 +347,9 @@
     async function loadDataFromSheets() {
       const statusDiv = document.getElementById('statusMessage');
       const resultsDiv = document.getElementById('resultsSection');
+      
+      // Disable search controls during loading
+      disableSearchControls();
       
       statusDiv.innerHTML = '<div class="loading">กำลังโหลดข้อมูลจาก Google Sheets...</div>';
       resultsDiv.innerHTML = '';
@@ -363,6 +398,9 @@
         // Show all orders initially
         displayOrders(allOrders);
         
+        // Enable search controls after successful data load
+        enableSearchControls();
+        
       } catch (error) {
         console.error('Error loading data:', error);
         statusDiv.innerHTML = '<div class="error">เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message + '<br><br>กำลังใช้ข้อมูลตัวอย่าง...</div>';
@@ -373,6 +411,9 @@
           allOrders = sampleData;
           displayOrders(allOrders);
           statusDiv.innerHTML = '<div class="success">ใช้ข้อมูลตัวอย่างสำเร็จ! พบคำสั่งซื้อ ' + allOrders.length + ' รายการ</div>';
+          
+          // Enable search controls after sample data is loaded
+          enableSearchControls();
         }, 1000);
       }
     }
@@ -737,6 +778,12 @@
 
     // Search orders based on filters
     function searchOrders() {
+      // Prevent search if data is not loaded yet
+      if (allOrders.length === 0) {
+        console.log('Search blocked: Data not loaded yet');
+        return;
+      }
+      
       const batchFilter = document.getElementById('batchFilter').value;
       const nameSearch = document.getElementById('nameSearch').value.toLowerCase();
       const coreTeamOnly = document.getElementById('coreTeamFilter').checked;
@@ -785,6 +832,12 @@
 
     // Clear search filters
     function clearSearch() {
+      // Prevent clear if data is not loaded yet
+      if (allOrders.length === 0) {
+        console.log('Clear search blocked: Data not loaded yet');
+        return;
+      }
+      
       document.getElementById('batchFilter').value = '';
       document.getElementById('nameSearch').value = '';
       document.getElementById('coreTeamFilter').checked = false;
@@ -862,15 +915,27 @@
       // Load data from Google Sheets automatically when page loads
       loadDataFromSheets();
       
-      // Add event listeners for real-time search
+      // Add event listeners for real-time search (will be enabled after data loads)
       document.getElementById('nameSearch').addEventListener('input', function() {
-        if (this.value.length >= 2 || this.value.length === 0) {
+        // Only search if controls are enabled and data is loaded
+        if (!this.disabled && (this.value.length >= 2 || this.value.length === 0)) {
           searchOrders();
         }
       });
       
-      document.getElementById('batchFilter').addEventListener('change', searchOrders);
-      document.getElementById('coreTeamFilter').addEventListener('change', searchOrders);
+      document.getElementById('batchFilter').addEventListener('change', function() {
+        // Only search if controls are enabled
+        if (!this.disabled) {
+          searchOrders();
+        }
+      });
+      
+      document.getElementById('coreTeamFilter').addEventListener('change', function() {
+        // Only search if controls are enabled
+        if (!this.disabled) {
+          searchOrders();
+        }
+      });
     });
   </script>
 </body>
