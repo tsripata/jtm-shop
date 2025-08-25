@@ -614,7 +614,7 @@
           'timestamp', 'contact name', 'batch', 'batch other', 'phone number', 'phonenumber',
           'total baht', 'totalbaht', 'free stickers', 'freestickers', 'payment slip url', 'payment slip url',
           'core team', 'core team amount', 'total', 'summary', 'รวม', 'ยอด', 'จำนวน',
-          'phone', 'เบอร์', 'tel', 'telephone', 'sticker', 'สติกเกอร์'
+          'phone', 'เบอร์', 'tel', 'telephone'
         ];
         
         // Debug: Log which columns are being processed for items
@@ -644,8 +644,8 @@
           if (lowerProductName.includes('phone') || 
               lowerProductName.includes('เบอร์') || 
               lowerProductName.includes('tel') ||
-              lowerProductName.includes('sticker') ||
-              lowerProductName.includes('สติกเกอร์') ||
+              // Only exclude free stickers, not actual sticker products
+              (lowerProductName.includes('สติกเกอร์ฟรี') || lowerProductName === 'freestickers') ||
               lowerProductName.includes('free') ||
               lowerProductName.includes('ฟรี') ||
               lowerProductName.includes('timestamp') ||
@@ -672,8 +672,6 @@
               lowerProductName.includes('team') ||
               // Additional specific exclusions
               lowerProductName === 'phonenumber' ||
-              lowerProductName === 'freestickers' ||
-              lowerProductName === 'สติกเกอร์ฟรี' ||
               lowerProductName === 'เบอร์โทร' ||
               lowerProductName === 'telephone' ||
               lowerProductName === 'mobile' ||
