@@ -141,11 +141,11 @@
     // ---- JSON CONFIG: สินค้าและราคา ----
     // เพิ่มคุณสมบัติ "disabled: true" เพื่อปิดการใช้งานสินค้ารายนั้น
     const CATALOG = [
-      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy S", price: 300},
-      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy M", price: 300 },
-      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy L", price: 300 },
-      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy XL", price: 300 },
-      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy 2XL", price: 300 },
+      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy S", price: 300 , disabled: true },
+      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy M", price: 300 , disabled: true },
+      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy L", price: 300 , disabled: true },
+      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy XL", price: 300 , disabled: true },
+      { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ Deep Navy 2XL", price: 300 , disabled: true },
 
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White S", price: 300 },
       { name: "เสื้อยุงลายทรง Standard ปักโลโก้ - ผู้ใหญ่ White M", price: 300 },
@@ -155,21 +155,21 @@
 
       { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' Deep Navy", price: 350 },
       { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' Deep Navy", price: 350 },
-      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350},
+      { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Female 45'' White", price: 350 },
       { name: "เสื้อยุงลายทรง Oversize ปักโลโก้ - ผู้ใหญ่ Male 50'' White", price: 350 },
 
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 110", price: 220 },
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 120", price: 220 },
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 130", price: 220 },
-      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 220  },
+      { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 220 },
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 150", price: 220 },
 
-      { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 , disabled: true },
-      { name: "กระเป๋า Cross Body สีฟ้า", price: 250 , disabled: true },
-      { name: "กระเป๋า Cross Body สีเหลือง", price: 250 , disabled: true },
+      { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 },
+      { name: "กระเป๋า Cross Body สีฟ้า", price: 250 },
+      { name: "กระเป๋า Cross Body สีเหลือง", price: 250 },
       { name: "กระเป๋า Cross Body สีดำ", price: 250 },
 
-      { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ป 3 สี", price: 320 , disabled: true },
+      { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ป 3 สี", price: 320 },
       { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ปสีเทา - เหลือง", price: 320 },
       { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ปสีฟ้า - เขียว", price: 320 },
       { name: "หมวก Bucket ผ้าร่ม", price: 350 },
@@ -184,9 +184,9 @@
     // You can control image size per banner by adding optional width/maxWidth/height/maxHeight
     // e.g. { index: 10, src: "oversize.jpg", alt: "Oversize", width: "80%", maxHeight: "300px" }
     const BANNERS = [
-  //{ index: 0, src: "standard.png", alt: "Standard", maxWidth: "600px" },
-  //{ index: 10, src: "oversize.png", alt: "Oversize", width: "90%", maxHeight: "600px" },
-  //{ index: 14, src: "kids.jpg", alt: "Kids", width: "60%" },
+  { index: 0, src: "standard.png", alt: "Standard", maxWidth: "600px" },
+  { index: 10, src: "oversize.png", alt: "Oversize", width: "90%", maxHeight: "600px" },
+  { index: 14, src: "kids.jpg", alt: "Kids", width: "60%" },
   { index: 19, src: "bags.jpg", alt: "Bags", width: "50%", maxWidth: "600px" },
   { index: 20, src: "crossbody.jpg", alt: "Crossbody", width: "50%", maxWidth: "600px" },
   { index: 23, src: "hats.jpg", alt: "Hats", width: "85%" },
