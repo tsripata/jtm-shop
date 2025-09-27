@@ -37,6 +37,34 @@
     button[disabled]{ opacity: .6; cursor: not-allowed; }
     .footer-note { font-size: 13px; color:#475569; }
     
+    /* Construction Banner Styles */
+    .construction-banner {
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      border: 2px solid #e74c3c;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+      animation: pulse 2s infinite;
+    }
+    .construction-content {
+      text-align: center;
+      color: white;
+    }
+    .construction-content h3 {
+      margin: 0 0 12px 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .construction-content p {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
     @media (max-width: 768px) {
       body { padding: 16px; }
       .container { padding: 20px; }
@@ -46,6 +74,15 @@
 <body>
   <div class="container">
     <h1>ของที่ระลึก JTM Family Trip</h1>
+    
+    <!-- Under Construction Banner -->
+    <div id="constructionBanner" class="construction-banner" style="display: none;">
+      <div class="construction-content">
+        <h3>🚧 กำลังปรับปรุงระบบ 🚧</h3>
+        <p>ขณะนี้ระบบกำลังอยู่ในช่วงปรับปรุง  ยังไม่รับ Preorder สินค้า</p>
+      </div>
+    </div>
+    
     <p class="hint">กรอกข้อมูลด้านล่างและเลือกจำนวนสินค้าที่ต้องการ </p>
     <p><b> สมนาคุณพิเศษ ทุก 1,000บาท รับสติ๊กเกอร์ JTM (แบบสุ่มลาย) 1แผ่น </b></p>
 
@@ -138,6 +175,10 @@
   </div>
 
   <script>
+    // ---- CONFIGURATION ----
+    // Toggle construction banner: true = show banner, false = hide banner
+    const SHOW_CONSTRUCTION_BANNER = true;
+    
     // ---- JSON CONFIG: สินค้าและราคา ----
     // เพิ่มคุณสมบัติ "disabled: true" เพื่อปิดการใช้งานสินค้ารายนั้น
     const CATALOG = [
@@ -386,6 +427,12 @@
         submitBtn.disabled = false;
       }
     });
+
+    // Show/hide construction banner based on configuration
+    const constructionBanner = document.getElementById('constructionBanner');
+    if (SHOW_CONSTRUCTION_BANNER) {
+      constructionBanner.style.display = 'block';
+    }
 
     // initial total
     recalcTotal();
