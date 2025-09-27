@@ -163,19 +163,21 @@
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 130", price: 220 },
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 220  },
       { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 150", price: 220 },
+      { name: "เสื้อ oversized sweater white อก 50\"", price: 350 },
+      { name: "เสื้อ oversized sweater navy blue อก 50\"", price: 350 },
 
       { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 , disabled: true },
       { name: "กระเป๋า Cross Body สีฟ้า", price: 250 , disabled: true },
       { name: "กระเป๋า Cross Body สีเหลือง", price: 250 , disabled: true },
-      { name: "กระเป๋า Cross Body สีดำ", price: 250 },
+      { name: "กระเป๋า Cross Body สีดำ", price: 250, disabled: true  },
 
       { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ป 3 สี", price: 320 , disabled: true },
       { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ปสีเทา - เหลือง", price: 320 },
       { name: "หมวกแก๊บผ้าร่ม เด็กใส่ได้ ผู้ใหญ่ใส่ดี - หมวกแก๊ปสีฟ้า - เขียว", price: 320 },
       { name: "หมวก Bucket ผ้าร่ม", price: 350 },
 
-      { name: "สติกเกอร์ติดท้ายรถ แบบ 1", price: 50 },
-      { name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50 } //{ name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50, disabled: true },
+      { name: "สติกเกอร์ติดท้ายรถ แบบ 1", price: 50, disabled: true },
+      { name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50, disabled: true } //{ name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50, disabled: true },
     ];
 
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1wYhJEGOrJb3WN5QultwtNpAQSk-sPXpWL54CWWSP-zR63FznkfAJ1lWZZUtadq3Y/exec"; // <-- เปลี่ยนเป็น URL จาก Apps Script
@@ -187,12 +189,12 @@
   { index: 0, src: "standard.png", alt: "Standard", maxWidth: "600px" },
   { index: 10, src: "oversize.png", alt: "Oversize", width: "90%", maxHeight: "600px" },
   { index: 14, src: "kids.jpg", alt: "Kids", width: "60%" },
-  { index: 19, src: "bags.jpg", alt: "Bags", width: "50%", maxWidth: "600px" },
-  { index: 20, src: "crossbody.jpg", alt: "Crossbody", width: "50%", maxWidth: "600px" },
-  { index: 23, src: "hats.jpg", alt: "Hats", width: "85%" },
-  { index: 26, src: "bucket.jpg", alt: "Bucket", width: "85%", maxHeight: "280px" },
-  { index: 27, src: "sticker1.jpg", alt: "Stickers", width: "50%" },
-  { index: 28, src: "sticker2.jpg", alt: "Stickers", width: "50%" }
+  { index: 19, src: "sweat.jpg", alt: "sweat", width: "60%" },
+  //{ index: 19, src: "bags.jpg", alt: "Bags", width: "50%", maxWidth: "600px" },
+  //{ index: 20, src: "crossbody.jpg", alt: "Crossbody", width: "50%", maxWidth: "600px" },
+  { index: 21, src: "hats.jpg", alt: "Hats", width: "85%" },
+  { index: 28, src: "bucket.jpg", alt: "Bucket", width: "85%", maxHeight: "280px" }
+  //{ index: 28, src: "sticker2.jpg", alt: "Stickers", width: "50%" }
 ];
 
     function appendBanner(container, cfg) {

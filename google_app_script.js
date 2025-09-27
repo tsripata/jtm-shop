@@ -1,6 +1,6 @@
 /** CONFIG */
 const SPREADSHEET_ID = "19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY";
-const SHEET_NAME = "Orders";
+const SHEET_NAME = "Orders-new-27-Sep";
 const DRIVE_FOLDER_ID = "1DZ1LhZC3IkC6UpHGKahkJ2nfZFV0uKa0";
 const LOG_SHEET_NAME = "logs";
 
@@ -34,6 +34,8 @@ const ITEM_CATALOG = [
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 130", price: 220 },
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 220 },
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 150", price: 220 },
+  { name: "เสื้อ oversized sweater white อก 50\"", price: 350 },
+  { name: "เสื้อ oversized sweater navy blue อก 50\"", price: 350 },
 
   { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 },
   { name: "กระเป๋า Cross Body สีฟ้า", price: 250 },
