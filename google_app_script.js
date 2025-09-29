@@ -34,8 +34,8 @@ const ITEM_CATALOG = [
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 130", price: 220 },
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 140", price: 220 },
   { name: "เสื้อยุงลายปักโลโก้ สำหรับเด็ก 150", price: 220 },
-  { name: "เสื้อ oversized sweater white อก 50\"", price: 350 },
-  { name: "เสื้อ oversized sweater navy blue อก 50\"", price: 350 },
+  { name: "เสื้อ oversized sweater white อก 50\"", price: 390 },
+  { name: "เสื้อ oversized sweater navy blue อก 50\"", price: 390 },
 
   { name: "กระเป๋าผ้าทรงเสื้อกล้าม พับเก็บได้ ลายเป็นแบบสุ่มแต่สวยทุกใบ", price: 220 },
   { name: "กระเป๋า Cross Body สีฟ้า", price: 250 },
