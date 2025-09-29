@@ -263,7 +263,7 @@ function doPost(e) {
 
     // Compute total and freebies
     const totalBaht = qtys.reduce((sum, q, i) => sum + q * ITEM_CATALOG[i].price, 0);
-    const freebies  = Math.floor(totalBaht / 1000);
+    const freebies  = 0; // Free sticker calculation removed
 
     if (!contactName || !batch || !phoneNumber) {
       return corsText_("ข้อมูลไม่ครบ (ชื่อผู้ติดต่อ/รุ่น/เบอร์โทรศัพท์)", 400);
@@ -331,7 +331,7 @@ function doPost(e) {
     sheetLog("ORDER COMPLETED: " + contactName + " - Batch: " + batch + " - Total: " + totalBaht + " THB - Free stickers: " + freebies);
 
     // Response
-    const msg = `บันทึกสำเร็จ ยอดรวม ${totalBaht} บาท ได้สติกเกอร์ฟรี ${freebies} แผ่น`;
+    const msg = `บันทึกสำเร็จ ยอดรวม ${totalBaht} บาท`;
     return corsText_(msg, 200);
 
   } catch (err) {

@@ -84,7 +84,6 @@
     </div>
     
     <p class="hint">กรอกข้อมูลด้านล่างและเลือกจำนวนสินค้าที่ต้องการ </p>
-    <p><b> สมนาคุณพิเศษ ทุก 1,000บาท รับสติ๊กเกอร์ JTM (แบบสุ่มลาย) 1แผ่น </b></p>
 
     <form id="orderForm" enctype="multipart/form-data">
     <!-- Main Input -->
@@ -128,7 +127,6 @@
       <div style="display: flex; gap: 32px; align-items: flex-start;">
         <div style="flex: 1;">
           <p class="total">ยอดรวม: <span id="total">0</span> บาท</p>
-          <p>รับสินค้าสมนาคุณ <strong><span id="freebies">0</span></strong> ชิ้น (ทุกๆ 1,000 บาท)</p>
         </div>
         <div style="flex: 1; min-width: 0;">
           <h4 style="margin: 0 0 8px 0; color: #374151;">สรุปรายการที่เลือก</h4>
@@ -177,7 +175,7 @@
   <script>
     // ---- CONFIGURATION ----
     // Toggle construction banner: true = show banner, false = hide banner
-    const SHOW_CONSTRUCTION_BANNER = true;
+    const SHOW_CONSTRUCTION_BANNER = false;
     
     // ---- JSON CONFIG: สินค้าและราคา ----
     // เพิ่มคุณสมบัติ "disabled: true" เพื่อปิดการใช้งานสินค้ารายนั้น
@@ -311,7 +309,7 @@
       });
       
       document.getElementById("total").textContent = total.toLocaleString();
-      document.getElementById("freebies").textContent = Math.floor(total / 1000);
+      // Free sticker calculation removed
       
       // Update order summary
       updateOrderSummary(selectedItems);
