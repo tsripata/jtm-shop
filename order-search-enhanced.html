@@ -257,8 +257,8 @@
   <script>
     // Google Sheets URL - you need to publish this as CSV
     // To publish: File > Share > Publish to web > CSV
-    // Reading from "Order Data" tab instead of main sheet
-    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY/edit?gid=1646323390#gid=1646323390";
+    // Reading from "Orders-new-27-Sep" tab
+    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/19RzNl-aSOvQ0DRSAo4pjm3YcF4FdEqPl37rOtmu8CIY/edit?gid=617431307#gid=617431307";
     
     // CORS Proxy (you can use any of these or set up your own)
     const CORS_PROXIES = [
@@ -297,6 +297,8 @@
       { name: "หหมวกแก๊ปสีเทา - เหลือง", image: "hats.jpg", price: 320 },
       { name: "หมวกแก๊ปสีฟ้า - เขียว", image: "hats.jpg", price: 320 },
       { name: "หมวก Bucket ผ้าร่ม", image: "bucket.jpg", price: 350 },
+      { name: "เสื้อสเวตเตอร์ JTM - ขาว", image: "sweater.png", price: 450 },
+      { name: "เสื้อสเวตเตอร์ JTM -  navy", image: "sweater.png", price: 450 },
       { name: "สติกเกอร์ติดท้ายรถ แบบ 1", image: "sticker1.jpg", price: 50 },
       { name: "สติกเกอร์ติดท้ายรถ แบบ 2", image: "sticker2.jpg", price: 50 }
     ];
@@ -553,7 +555,6 @@
           batchOther: getValueByColumn('Batch Other') || getValueByColumn('รุ่นอื่น') || getValueByColumn('Other'),
           phoneNumber: getValueByColumn('Phone Number') || getValueByColumn('PhoneNumber') || getValueByColumn('เบอร์') || getValueByColumn('Phone') || getValueByColumn('Tel') || '',
           totalBaht: getNumericValueByColumn('Total Baht') || getNumericValueByColumn('TotalBaht') ,
-          freeStickers: getIntValueByColumn('Free Stickers') || getIntValueByColumn('FreeStickers') || getIntValueByColumn('สติกเกอร์ฟรี') || 0,
           paymentSlipURL: getValueByColumn('Payment Slip URL') ,
           coreTeam: getValueByColumn('Core Team') ,
           coreTeamAmount: getNumericValueByColumn('Core Team') ,
@@ -568,7 +569,6 @@
           console.log(`  Batch: "${order.batch}"`);
           console.log(`  Phone Number: "${order.phoneNumber}"`);
           console.log(`  Total Baht: ${order.totalBaht}`);
-          console.log(`  Free Stickers: ${order.freeStickers}`);
           console.log(`  Core Team: "${order.coreTeam}"`);
           console.log(`  Core Team Amount: ${order.coreTeamAmount}`);
           
@@ -577,7 +577,6 @@
           console.log(`    Timestamp found: ${getValueByColumn('Timestamp') || getValueByColumn('Date') || getValueByColumn('วันที่') || getValueByColumn('Time')}`);
           console.log(`    Name found: ${getValueByColumn('Contact Name') || getValueByColumn('Name') || getValueByColumn('ชื่อ') || getValueByColumn('Contact')}`);
           console.log(`    Phone found: ${getValueByColumn('Phone Number') || getValueByColumn('Phone') || getValueByColumn('เบอร์') || getValueByColumn('Tel')}`);
-          console.log(`    Free Stickers found: ${getValueByColumn('Free Stickers') || getValueByColumn('FreeStickers') || getValueByColumn('สติกเกอร์ฟรี') || 'NOT FOUND'}`);
         }
         
         // Debug Core Team values for first few orders
@@ -612,7 +611,7 @@
         let itemCount = 0;
         const knownNonProductColumns = [
           'timestamp', 'contact name', 'batch', 'batch other', 'phone number', 'phonenumber',
-          'total baht', 'totalbaht', 'free stickers', 'freestickers', 'payment slip url', 'payment slip url',
+          'total baht', 'totalbaht', 'payment slip url', 'payment slip url',
           'core team', 'core team amount', 'total', 'summary', 'รวม', 'ยอด', 'จำนวน',
           'phone', 'เบอร์', 'tel', 'telephone'
         ];
@@ -644,10 +643,6 @@
           if (lowerProductName.includes('phone') || 
               lowerProductName.includes('เบอร์') || 
               lowerProductName.includes('tel') ||
-              // Only exclude free stickers, not actual sticker products
-              (lowerProductName.includes('สติกเกอร์ฟรี') || lowerProductName === 'freestickers') ||
-              lowerProductName.includes('free') ||
-              lowerProductName.includes('ฟรี') ||
               lowerProductName.includes('timestamp') ||
               lowerProductName.includes('date') ||
               lowerProductName.includes('วันที่') ||
@@ -805,7 +800,6 @@
           batchOther: "816368018",
           phoneNumber: "2,190",
           totalBaht: 2190,
-          freeStickers: 2,
           paymentSlipURL: "https://drive.google.com/file/d/1LNHzkwJ37uJvc3S9xCK_cw7ickMBHmky/view?usp=drivesdk",
           coreTeam: "Core Team",
           coreTeamAmount: 2190,
@@ -826,7 +820,6 @@
           batchOther: "819280635",
           phoneNumber: "2,860",
           totalBaht: 2860,
-          freeStickers: 2,
           paymentSlipURL: "https://drive.google.com/file/d/1CXIN0vLw8Y7XArbmM0UwiUTnRcjJmyai/view?usp=drivesdk",
           coreTeam: "Core Team",
           coreTeamAmount: -350,
@@ -849,7 +842,6 @@
           batchOther: "867871741",
           phoneNumber: "2,120",
           totalBaht: 2120,
-          freeStickers: 2,
           paymentSlipURL: "https://drive.google.com/file/d/1gUdrP0SWuEcDcZN9ZDhyNRrKYcutQcVy/view?usp=drivesdk",
           coreTeam: "",
           coreTeamAmount: 0,
@@ -962,7 +954,6 @@
                   รุ่น: ${order.batch}${order.batchOther ? ' (' + order.batchOther + ')' : ''} | 
                   เบอร์: ${order.phoneNumber || 'ไม่ระบุ'} | 
                   วันที่: ${order.timestamp}
-                  ${(order.freeStickers && order.freeStickers > 0) ? ` | สติกเกอร์ฟรี: ${order.freeStickers} ชิ้น` : ''}
                   ${order.paymentSlipURL ? ` | <a href="${order.paymentSlipURL}" target="_blank" style="color: #059669; text-decoration: none; font-weight: 600;">📄 ดูสลิป</a>` : ''}
                 </div>
               </div>
@@ -975,7 +966,22 @@
         Object.entries(order.items).forEach(([itemName, quantity]) => {
           if (quantity > 0) {
             const product = PRODUCT_CATALOG.find(p => p.name === itemName);
-            const image = product ? product.image : 'standard.png';
+            let image = product ? product.image : 'standard.png';
+            
+            // Special handling for sweater items - check if item name contains sweater keywords
+            if (!product && (itemName.toLowerCase().includes('sweater') || 
+                            itemName.toLowerCase().includes('สเวตเตอร์') ||
+                            itemName.toLowerCase().includes('oversized sweater'))) {
+              image = 'sweater.png';
+            }
+            
+            // Special handling for hat items - check if item name contains hat keywords
+            if (!product && (itemName.toLowerCase().includes('หมวก') || 
+                            itemName.toLowerCase().includes('hat') ||
+                            itemName.toLowerCase().includes('แก๊ป') ||
+                            itemName.toLowerCase().includes('แก๊บ'))) {
+              image = 'hats.jpg';
+            }
             
             html += `
               <div class="item-card">
