@@ -75,11 +75,12 @@
   <div class="container">
     <h1>ของที่ระลึก JTM Family Trip</h1>
     
-    <!-- Under Construction Banner -->
-    <div id="constructionBanner" class="construction-banner" style="display: none;">
+    <!-- Closed Banner -->
+    <div id="constructionBanner" class="construction-banner">
       <div class="construction-content">
-        <h3>🚧 กำลังปรับปรุงระบบ 🚧</h3>
-        <p>ขณะนี้ระบบกำลังอยู่ในช่วงปรับปรุง  ยังไม่รับ Preorder สินค้า</p>
+        <h3>🙏 ปิดรับ Preorder แล้ว 🙏</h3>
+        <p>ขอขอบคุณทุกท่านที่ให้การสนับสนุนครับ</p>
+        <p>Thank you for all the support!</p>
       </div>
     </div>
     
@@ -175,7 +176,7 @@
   <script>
     // ---- CONFIGURATION ----
     // Toggle construction banner: true = show banner, false = hide banner
-    const SHOW_CONSTRUCTION_BANNER = false;
+    const SHOW_CONSTRUCTION_BANNER = true;
     
     // ---- JSON CONFIG: สินค้าและราคา ----
     // เพิ่มคุณสมบัติ "disabled: true" เพื่อปิดการใช้งานสินค้ารายนั้น
@@ -219,7 +220,7 @@
       { name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50, disabled: true } //{ name: "สติกเกอร์ติดท้ายรถ แบบ 2", price: 50, disabled: true },
     ];
 
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1wYhJEGOrJb3WN5QultwtNpAQSk-sPXpWL54CWWSP-zR63FznkfAJ1lWZZUtadq3Y/exec"; // <-- เปลี่ยนเป็น URL จาก Apps Script
+    const WEB_APP_URL = ""; // Apps Script URL removed - no longer accepting orders
 
     // Banner configuration: insert an image BEFORE the item at given index
     // You can control image size per banner by adding optional width/maxWidth/height/maxHeight
@@ -430,6 +431,9 @@
     const constructionBanner = document.getElementById('constructionBanner');
     if (SHOW_CONSTRUCTION_BANNER) {
       constructionBanner.style.display = 'block';
+      // Disable the form when banner is shown
+      const formElements = form.querySelectorAll('input, select, button');
+      formElements.forEach(el => el.disabled = true);
     }
 
     // initial total
